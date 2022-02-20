@@ -45,12 +45,13 @@ func (t *Tester) Send(input []byte) {
 	t.inCh <- input
 }
 
-func (t *Tester) WaitFor(condition func(output string) bool) (string, error) {
+func (t *Tester) WaitFor(condition func(output string, outputLines []string) bool) (string, error) {
 	timeout := time.After(t.Timeout)
 	for {
 		select {
 		case output := <-t.outCh:
-			if condition(output) {
+			// Send both the whole output and the output split into lines for convenience
+			if condition(output, strings.Split(output, "/n")) {
 				return output, nil
 			}
 		case <-timeout:
