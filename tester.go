@@ -1,15 +1,18 @@
 package tester
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
+	"time"
 )
 
 type Tester struct {
-	doneCh chan struct{}
-	inCh   chan []byte
-	outCh  chan string
-	last   string
+	doneCh  chan struct{}
+	inCh    chan []byte
+	outCh   chan string
+	last    string
+	timeout time.Duration
 }
 
 func (t *Tester) Read(input []byte) (n int, err error) {
@@ -42,17 +45,30 @@ func (t *Tester) Send(input []byte) {
 	t.inCh <- input
 }
 
-func (t *Tester) WaitFor(condition func(output string) bool) string {
-	for output := range t.outCh {
-		if condition(output) {
-			return output
+func (t *Tester) WaitFor(condition func(output string) bool) (string, error) {
+	timeout := time.After(t.timeout)
+	for {
+		select {
+		case output := <-t.outCh:
+			if condition(output) {
+				return output, nil
+			}
+		case <-timeout:
+			return "", fmt.Errorf("Timeout exceeded")
 		}
+
 	}
-	return ""
 }
 
-func (t *Tester) WaitForTermination() {
-	<-t.doneCh
+func (t *Tester) WaitForTermination() error {
+	timeout := time.After(t.timeout)
+	select {
+	case <-t.doneCh:
+	case <-timeout:
+		return fmt.Errorf("Timeout exceeded")
+	}
+
+	return nil
 }
 
 func New(program func(tester *Tester)) Tester {
