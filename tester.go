@@ -12,7 +12,7 @@ type Tester struct {
 	inCh    chan []byte
 	outCh   chan string
 	last    string
-	timeout time.Duration
+	Timeout time.Duration
 }
 
 func (t *Tester) Read(input []byte) (n int, err error) {
@@ -46,7 +46,7 @@ func (t *Tester) Send(input []byte) {
 }
 
 func (t *Tester) WaitFor(condition func(output string) bool) (string, error) {
-	timeout := time.After(t.timeout)
+	timeout := time.After(t.Timeout)
 	for {
 		select {
 		case output := <-t.outCh:
@@ -61,7 +61,7 @@ func (t *Tester) WaitFor(condition func(output string) bool) (string, error) {
 }
 
 func (t *Tester) WaitForTermination() error {
-	timeout := time.After(t.timeout)
+	timeout := time.After(t.Timeout)
 	select {
 	case <-t.doneCh:
 	case <-timeout:
@@ -75,7 +75,15 @@ func New(program func(tester *Tester)) Tester {
 	doneCh := make(chan struct{}, 1)
 	inCh := make(chan []byte, 1)
 	outCh := make(chan string, 1)
-	tester := Tester{doneCh: doneCh, inCh: inCh, outCh: outCh, last: ""}
+
+	defaultTimeout := 5 * time.Second
+	tester := Tester{
+		doneCh:  doneCh,
+		inCh:    inCh,
+		outCh:   outCh,
+		Timeout: defaultTimeout,
+		last:    "",
+	}
 
 	go func() {
 		program(&tester)
