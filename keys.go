@@ -81,3 +81,11 @@ const (
 	KeyCtrlUnderscore   byte = keyUS  // ctrl+_
 	KeyCtrlQuestionMark byte = keyDEL // ctrl+?
 )
+
+// Other keys.
+const (
+	KeyUp    string = "\x1b[A"
+	KeyDown  string = "\x1b[B"
+	KeyRight string = "\x1b[C"
+	KeyLeft  string = "\x1b[D"
+)

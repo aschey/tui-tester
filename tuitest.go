@@ -61,6 +61,7 @@ func (t *Tester) SendString(input string) {
 
 func (t *Tester) WaitFor(condition func(output string, outputLines []string) bool) (string, []string, error) {
 	timeout := time.After(t.Timeout)
+	last := ""
 	for {
 		select {
 		case output := <-t.outCh:
@@ -72,11 +73,12 @@ func (t *Tester) WaitFor(condition func(output string, outputLines []string) boo
 			}
 			// Send both the whole output and the output split into lines for convenience
 			outputLines := strings.Split(output, "\n")
+			last = output
 			if condition(output, outputLines) {
 				return output, outputLines, nil
 			}
 		case <-timeout:
-			return "", []string{}, fmt.Errorf("Timeout exceeded")
+			return "", []string{}, fmt.Errorf("Timeout exceeded while waiting for condition. Last returned output: %s", last)
 		}
 
 	}
@@ -87,7 +89,7 @@ func (t *Tester) WaitForTermination() error {
 	select {
 	case <-t.doneCh:
 	case <-timeout:
-		return fmt.Errorf("Timeout exceeded")
+		return fmt.Errorf("Timeout exceeded while waiting for termination")
 	}
 
 	return nil
