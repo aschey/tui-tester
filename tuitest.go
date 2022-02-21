@@ -73,7 +73,7 @@ func (t *Tester) WaitFor(condition func(output string, outputLines []string) boo
 			}
 			// Send both the whole output and the output split into lines for convenience
 			outputLines := strings.Split(output, "\n")
-			last = output
+			last = strings.TrimSpace(RemoveAnsiSequences(output))
 			if condition(output, outputLines) {
 				return output, outputLines, nil
 			}
@@ -100,7 +100,7 @@ func New(program func(tester *Tester)) Tester {
 	inCh := make(chan []byte, 1)
 	outCh := make(chan string, 1)
 
-	defaultTimeout := 5 * time.Second
+	defaultTimeout := 1 * time.Second
 	tester := Tester{
 		doneCh:  doneCh,
 		inCh:    inCh,
