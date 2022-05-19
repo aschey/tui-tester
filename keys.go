@@ -34,16 +34,16 @@ const (
 	keyGS  byte = 29  // group separator
 	keyRS  byte = 30  // record separator
 	keyUS  byte = 31  // unit separator
-	keySP  byte = 32  // space
 	keyDEL byte = 127 // delete. on most systems this is mapped to backspace, I hear
 )
 
+// Control key aliases.
 const (
+	KeyNull      byte = keyNUL
 	KeyBreak     byte = keyETX
 	KeyEnter     byte = keyCR
 	KeyBackspace byte = keyDEL
 	KeyTab       byte = keyHT
-	KeySpace     byte = keySP
 	KeyEsc       byte = keyESC
 	KeyEscape    byte = keyESC
 
