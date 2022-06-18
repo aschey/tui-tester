@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ActiveState/termtest"
+	"github.com/aschey/termtest"
 	"golang.org/x/tools/cover"
 )
 

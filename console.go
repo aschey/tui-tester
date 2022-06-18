@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ActiveState/termtest"
+	"github.com/aschey/termtest"
 )
 
 type Console struct {

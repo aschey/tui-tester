@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ActiveState/termtest/expect"
+	"github.com/aschey/termtest/expect"
 )
 
 type outputMatcher struct {
