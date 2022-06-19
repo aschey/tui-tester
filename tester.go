@@ -52,7 +52,7 @@ func NewTester(binDir string, coverPkg string, coverageFile string) (Tester, err
 	if err != nil {
 		return Tester{}, err
 	}
-	exePath := path.Join(tmpdir, "instr_bin.exe")
+	exePath := path.Join(tmpdir, "instr_bin")
 
 	buildTestCmd := exec.Command("go", "test", binDir, "-covermode=atomic", "-c", "-o", exePath, "-coverpkg", coverPkg+"/...")
 	output, err := buildTestCmd.CombinedOutput()
