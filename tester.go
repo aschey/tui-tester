@@ -13,7 +13,8 @@ import (
 )
 
 type Tester struct {
-	exePath string
+	exePath      string
+	coverageFile string
 }
 
 func (t Tester) NewConsole(args []string) (*Console, error) {
@@ -46,7 +47,7 @@ func (t Tester) NewConsole(args []string) (*Console, error) {
 	return &tester, nil
 }
 
-func NewTester(binDir string, coverPkg string) (Tester, error) {
+func NewTester(binDir string, coverPkg string, coverageFile string) (Tester, error) {
 	tmpdir, err := os.MkdirTemp("", "")
 	if err != nil {
 		return Tester{}, err
@@ -59,7 +60,7 @@ func NewTester(binDir string, coverPkg string) (Tester, error) {
 		return Tester{}, fmt.Errorf(string(output))
 	}
 
-	return Tester{exePath: exePath}, nil
+	return Tester{exePath: exePath, coverageFile: coverageFile}, nil
 }
 
 func (t Tester) CoverageTearDown() error {
@@ -80,7 +81,7 @@ func (t Tester) CoverageTearDown() error {
 			}
 		}
 	}
-	covFile, err := os.Create("all.cov")
+	covFile, err := os.Create(t.coverageFile)
 	if err != nil {
 		return err
 	}
