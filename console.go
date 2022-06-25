@@ -1,7 +1,6 @@
 package tuitest
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/aschey/termtest"
@@ -49,30 +48,12 @@ func (c *Console) WaitForDuration(condition func(state TermState) bool, duration
 }
 
 func (c *Console) waitFor(condition func(state TermState) bool, duration *time.Duration) (TermState, error) {
-	timeout := time.After(c.Timeout)
-	if duration != nil && *duration*2 > c.Timeout {
-		timeout = time.After(*duration * 2)
-	}
-
-	errCh := make(chan error, 1)
 	outCh := make(chan TermState, 1)
-	go func() {
-		_, err := c.console.ExpectCustom(Matcher(condition, c.TrimOutput, outCh, duration))
-		if err != nil {
-			errCh <- err
-		}
-	}()
-
-	for {
-		select {
-		case output := <-outCh:
-			return output, nil
-		case err := <-errCh:
-			return TermState{}, err
-		case <-timeout:
-			return TermState{}, c.handleError(fmt.Errorf("Timeout exceeded while waiting for condition."))
-		}
+	_, err := c.console.ExpectCustom(Matcher(condition, c.TrimOutput, outCh, duration))
+	if err != nil {
+		return TermState{}, c.handleError(err)
 	}
+	return <-outCh, nil
 }
 
 func (c *Console) WaitForTermination() error {

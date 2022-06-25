@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/aschey/termtest"
+	"github.com/aschey/termtest/expect"
 	"golang.org/x/tools/cover"
 )
 
@@ -25,12 +26,15 @@ func (t Tester) NewConsole(args []string) (*Console, error) {
 	if err != nil {
 		return nil, err
 	}
-	println(tempFile.Name())
+
 	args = append(args, "-test.coverprofile")
 	args = append(args, tempFile.Name())
 	opts := termtest.Options{
 		CmdName: t.exePath,
 		Args:    args,
+		ExtraOpts: []expect.ConsoleOpt{
+			expect.WithDefaultExpectTimeout(5 * time.Second),
+		},
 	}
 	console, err := termtest.New(opts)
 	if err != nil {
