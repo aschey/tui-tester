@@ -21,7 +21,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Copied from https://github.com/wadey/gocovmerge
+// Copied from https://github.com/wadey/gocovmerge which is currently not installable as a library
 
 package tuitest
 
