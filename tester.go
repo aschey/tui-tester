@@ -1,6 +1,7 @@
 package tuitest
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -12,6 +13,16 @@ import (
 	"github.com/aschey/termtest/expect"
 	"golang.org/x/tools/cover"
 )
+
+var collectCoverage *bool
+var coverpkg *string
+var coverageFile *string
+
+func init() {
+	collectCoverage = flag.Bool("tuicover", false, "")
+	coverpkg = flag.String("tuicoverpkg", ".", "")
+	coverageFile = flag.String("tuicoverfile", "coverage.out", "")
+}
 
 type Tester struct {
 	exePath         string
@@ -55,14 +66,7 @@ func (t Tester) NewConsole(args []string) (*Console, error) {
 	return &tester, nil
 }
 
-func NewTester(binDir string, coverPkg string, coverageFile string) (Tester, error) {
-	collectCoverage := false
-	for _, arg := range os.Args {
-		if arg == "-cover" {
-			collectCoverage = true
-		}
-	}
-
+func NewTester(binDir string) (Tester, error) {
 	tmpdir, err := os.MkdirTemp("", "")
 	if err != nil {
 		return Tester{}, err
@@ -70,8 +74,8 @@ func NewTester(binDir string, coverPkg string, coverageFile string) (Tester, err
 	exePath := path.Join(tmpdir, "instr_bin")
 
 	var buildTestCmd *exec.Cmd
-	if collectCoverage {
-		buildTestCmd = exec.Command("go", "test", binDir, "-covermode=atomic", "-c", "-o", exePath, "-coverpkg", coverPkg+"/...")
+	if *collectCoverage {
+		buildTestCmd = exec.Command("go", "test", binDir, "-covermode=atomic", "-c", "-o", exePath, "-coverpkg", *coverpkg)
 	} else {
 		buildTestCmd = exec.Command("go", "test", binDir, "-c", "-o", exePath)
 	}
@@ -81,7 +85,7 @@ func NewTester(binDir string, coverPkg string, coverageFile string) (Tester, err
 		return Tester{}, fmt.Errorf(string(output))
 	}
 
-	return Tester{exePath: exePath, collectCoverage: collectCoverage, coverageFile: coverageFile}, nil
+	return Tester{exePath: exePath, collectCoverage: *collectCoverage, coverageFile: *coverageFile}, nil
 }
 
 func (t Tester) TearDown() error {
