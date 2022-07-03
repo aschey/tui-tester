@@ -24,6 +24,12 @@ func TestTester(t *testing.T) {
 		t.Error(err)
 	}
 
+	console.SendString(tuitest.KeyCtrlC)
+	err = console.WaitForTermination()
+	if err != nil {
+		t.Error(err)
+	}
+
 	err = tester.TearDown()
 	if err != nil {
 		t.Error(err)
