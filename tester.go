@@ -96,6 +96,7 @@ func NewTester(binDir string, opts ...Option) (*Tester, error) {
 		defaultWaitTimeout: time.Second,
 		minInputInterval:   time.Millisecond,
 		terminationTimeout: time.Second,
+		onError:            func(err error) error { return err },
 	}
 
 	for _, opt := range opts {
