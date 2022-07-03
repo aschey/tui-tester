@@ -16,6 +16,15 @@ func TestTester(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+
+	// Wait for initialization
+	_, err = console.WaitFor(func(state tuitest.TermState) bool {
+		return state.Output() == "You typed:"
+	})
+	if err != nil {
+		t.Error(err)
+	}
+
 	console.SendString("input")
 	_, err = console.WaitFor(func(state tuitest.TermState) bool {
 		return state.Output() == "You typed: input"
