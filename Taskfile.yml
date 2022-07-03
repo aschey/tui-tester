@@ -1,0 +1,24 @@
+version: "3"
+
+includes:
+  os: ./Taskfile_{{OS}}.yml
+
+tasks:
+  test:
+    cmds:
+      - go test ./test -v
+  covTest:
+    cmds:
+      - go test ./test -cover -coverprofile coverage.out -covermode atomic -coverpkg ./...
+  buildCoverage:
+    deps: [covTest]
+    cmds:
+      - go tool cover -html coverage.out -o coverage.html
+  coverage:
+    cmds:
+      - task: buildCoverage
+      - task: os:coverage
+  update:
+    cmds:
+      - go get -u ./...
+      - go mod tidy
