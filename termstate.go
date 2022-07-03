@@ -22,6 +22,18 @@ func (t TermState) OutputLines() []string {
 	return strings.Split(t.text, "\n")
 }
 
+func (t TermState) NthOutputLine(index int) string {
+	outputLines := t.OutputLines()
+	if index > len(outputLines)-1 {
+		return ""
+	}
+	return outputLines[index]
+}
+
+func (t TermState) NumLines() int {
+	return len(t.OutputLines())
+}
+
 func (t TermState) FgColor(row int, col int) uint16 {
 	_, fg, _ := t.state.Cell(col, row)
 	return uint16(fg)

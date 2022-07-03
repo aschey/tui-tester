@@ -58,8 +58,14 @@ func (c *Console) waitFor(condition func(state TermState) bool, duration *time.D
 
 func (c *Console) WaitForTermination() error {
 	c.console.Wait(c.Timeout)
-	c.console.ExpectExitCode(0)
-	c.console.Close()
+	_, err := c.console.ExpectExitCode(0)
+	if err != nil {
+		return c.OnError(err)
+	}
+	err = c.console.Close()
+	if err != nil {
+		return c.OnError(err)
+	}
 	return nil
 }
 
