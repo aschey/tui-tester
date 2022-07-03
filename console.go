@@ -24,16 +24,6 @@ func (c *Console) wait() {
 	c.lastInput = time.Now()
 }
 
-func (c *Console) SendBytes(input []byte) {
-	c.wait()
-	c.console.SendUnterminated(string(input))
-}
-
-func (c *Console) SendByte(input byte) {
-	c.wait()
-	c.console.SendUnterminated(string(rune(input)))
-}
-
 func (c *Console) SendString(input string) {
 	c.wait()
 	c.console.SendUnterminated(input)
