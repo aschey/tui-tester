@@ -7,18 +7,19 @@ import (
 )
 
 type Console struct {
-	console    *termtest.ConsoleProcess
-	last       string
-	lastInput  time.Time
-	Timeout    time.Duration
-	TrimOutput bool
-	OnError    func(err error) error
+	consoleProcess     *termtest.ConsoleProcess
+	last               string
+	lastInput          time.Time
+	terminationTimeout time.Duration
+	TrimOutput         bool
+	onError            func(err error) error
+	minInputInterval   time.Duration
 }
 
 func (c *Console) wait() {
 	remaining := time.Since(c.lastInput)
-	if remaining < time.Millisecond {
-		time.Sleep(time.Millisecond - remaining)
+	if remaining < c.minInputInterval {
+		time.Sleep(c.minInputInterval - remaining)
 	}
 
 	c.lastInput = time.Now()
@@ -26,7 +27,7 @@ func (c *Console) wait() {
 
 func (c *Console) SendString(input string) {
 	c.wait()
-	c.console.SendUnterminated(input)
+	c.consoleProcess.SendUnterminated(input)
 }
 
 func (c *Console) WaitFor(condition func(state TermState) bool) (TermState, error) {
@@ -39,7 +40,7 @@ func (c *Console) WaitForDuration(condition func(state TermState) bool, duration
 
 func (c *Console) waitFor(condition func(state TermState) bool, duration *time.Duration) (TermState, error) {
 	outCh := make(chan TermState, 1)
-	_, err := c.console.ExpectCustom(Matcher(condition, c.TrimOutput, outCh, duration))
+	_, err := c.consoleProcess.ExpectCustom(Matcher(condition, c.TrimOutput, outCh, duration))
 	if err != nil {
 		return TermState{}, c.handleError(err)
 	}
@@ -47,21 +48,21 @@ func (c *Console) waitFor(condition func(state TermState) bool, duration *time.D
 }
 
 func (c *Console) WaitForTermination() error {
-	c.console.Wait(c.Timeout)
-	_, err := c.console.ExpectExitCode(0)
+	c.consoleProcess.Wait(c.terminationTimeout)
+	_, err := c.consoleProcess.ExpectExitCode(0)
 	if err != nil {
-		return c.OnError(err)
+		return c.onError(err)
 	}
-	err = c.console.Close()
+	err = c.consoleProcess.Close()
 	if err != nil {
-		return c.OnError(err)
+		return c.onError(err)
 	}
 	return nil
 }
 
 func (c *Console) handleError(err error) error {
-	if c.OnError != nil && err != nil {
-		return c.OnError(err)
+	if c.onError != nil && err != nil {
+		return c.onError(err)
 	}
 	return err
 }
