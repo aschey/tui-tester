@@ -3,6 +3,7 @@ package tuitest
 import (
 	"flag"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path"
@@ -113,18 +114,12 @@ func (t *Tester) TearDown() error {
 		if err != nil {
 			return t.onError(err)
 		}
-		merged := []*cover.Profile{}
-		for _, f := range files {
-			if strings.HasSuffix(f.Name(), ".cov") {
-				profiles, err := cover.ParseProfiles(path.Join(binDir, f.Name()))
-				if err != nil {
-					return t.onError(err)
-				}
-				for _, p := range profiles {
-					merged = addProfile(merged, p)
-				}
-			}
+
+		merged, err := t.profiles(files, binDir)
+		if err != nil {
+			return t.onError(err)
 		}
+
 		covFile, err := os.Create(t.coverageFile)
 		if err != nil {
 			return t.onError(err)
@@ -137,4 +132,20 @@ func (t *Tester) TearDown() error {
 		return t.onError(err)
 	}
 	return nil
+}
+
+func (t *Tester) profiles(files []fs.DirEntry, binDir string) ([]*cover.Profile, error) {
+	merged := []*cover.Profile{}
+	for _, f := range files {
+		if strings.HasSuffix(f.Name(), ".cov") {
+			profiles, err := cover.ParseProfiles(path.Join(binDir, f.Name()))
+			if err != nil {
+				return nil, err
+			}
+			for _, p := range profiles {
+				merged = addProfile(merged, p)
+			}
+		}
+	}
+	return merged, nil
 }
