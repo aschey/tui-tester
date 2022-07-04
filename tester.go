@@ -34,7 +34,7 @@ type Tester struct {
 	onError            func(err error) error
 }
 
-func (t *Tester) CreateConsole(args []string) (*Console, error) {
+func (t *Tester) CreateConsole(args ...string) (*Console, error) {
 	binDir := path.Dir(t.exePath)
 	if t.collectCoverage {
 		tempFile, err := os.CreateTemp(binDir, "*.cov")
@@ -59,7 +59,6 @@ func (t *Tester) CreateConsole(args []string) (*Console, error) {
 
 	console := &Console{
 		consoleProcess:     consoleProcess,
-		lastInput:          time.Now(),
 		minInputInterval:   t.minInputInterval,
 		terminationTimeout: t.terminationTimeout,
 		onError:            t.onError,
