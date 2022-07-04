@@ -11,15 +11,23 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: 1.18.x
-
       - name: test
         run: |
           sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
           ./bin/task covTest
-
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
         with:
           files: ./coverage.out
           verbose: true
           fail_ci_if_error: true
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18.x
+      - uses: actions/checkout@v3
+      - name: lint
+        uses: golangci/golangci-lint-action@v3

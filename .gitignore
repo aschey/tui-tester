@@ -15,3 +15,5 @@
 # vendor/
 
 *.html
+
+.vscode
