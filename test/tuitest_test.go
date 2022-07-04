@@ -1,55 +1,92 @@
 package test
 
 import (
+	"errors"
+	"os"
+	"strings"
 	"testing"
 	"time"
 
 	tuitest "github.com/aschey/tui-tester"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 )
 
-func TestSendInputAndExpectOutput(t *testing.T) {
-	tester, err := tuitest.NewTester("./testapp", tuitest.WithErrorHandler(func(err error) error {
-		t.Error(err)
+func init() {
+	os.Args = append(os.Args, "-tuicover", "-tuicoverpkg", "../...")
+}
+
+type TestSuite struct {
+	suite.Suite
+	tester  *tuitest.Tester
+	console *tuitest.Console
+}
+
+func cleanupCoverageFile() {
+	if _, err := os.Stat("coverage.out"); err == nil {
+		os.Remove("coverage.out")
+	} else if !errors.Is(err, os.ErrNotExist) {
+		panic("Error reading coverage file " + err.Error())
+	}
+}
+
+func (suite *TestSuite) SetupSuite() {
+	cleanupCoverageFile()
+}
+
+func (suite *TestSuite) setup(opts ...tuitest.Option) {
+	tester, err := tuitest.NewTester("./testapp", opts...)
+	suite.tester = tester
+
+	suite.Require().NoError(err)
+	console, err := tester.CreateConsole()
+	suite.Require().NoError(err)
+	suite.console = console
+	console.TrimOutput = true
+
+	_, err = suite.console.WaitFor(func(state tuitest.TermState) bool {
+		return state.Output() == "You typed:"
+	})
+	suite.Require().NoError(err)
+}
+
+func (suite *TestSuite) TearDownTest() {
+	suite.console.SendString(tuitest.KeyCtrlC)
+	suite.Require().NoError(suite.console.WaitForTermination())
+	suite.Require().NoError(suite.tester.TearDown())
+	fileBytes, err := os.ReadFile("coverage.out")
+	suite.Require().NoError(err)
+	fileStr := string(fileBytes)
+	suite.Require().True(strings.HasPrefix(fileStr, "mode: atomic"))
+}
+
+func (suite *TestSuite) TearDownSuite() {
+	cleanupCoverageFile()
+}
+
+func TestTuiTestSuite(t *testing.T) {
+	suite.Run(t, new(TestSuite))
+}
+
+func (suite *TestSuite) TestSendInputAndExpectOutput() {
+	suite.setup(tuitest.WithErrorHandler(func(err error) error {
+		suite.Require().NoError(err)
 		return err
 	}))
 
-	if err != nil {
-		t.Error(err)
-	}
-	console, _ := tester.CreateConsole()
-	console.TrimOutput = true
-
-	// Wait for initialization
-	_, _ = console.WaitFor(func(state tuitest.TermState) bool {
-		return state.Output() == "You typed:"
-	})
-
-	console.SendString("input")
-	_, _ = console.WaitFor(func(state tuitest.TermState) bool {
+	suite.console.SendString("input")
+	_, _ = suite.console.WaitFor(func(state tuitest.TermState) bool {
 		return state.Output() == "You typed: input"
 	})
-	if err != nil {
-		t.Error(err)
-	}
-
-	console.SendString(tuitest.KeyCtrlC)
-	_ = console.WaitForTermination()
-
-	_ = tester.TearDown()
 }
 
-func TestMinInputInterval(t *testing.T) {
-	tester, err := tuitest.NewTester("./testapp", tuitest.WithMinInputInterval(100*time.Millisecond))
-	if err != nil {
-		t.Error(err)
-	}
-	console, _ := tester.CreateConsole()
+func (suite *TestSuite) TestMinInputInterval() {
+	suite.setup(tuitest.WithMinInputInterval(100 * time.Millisecond))
+
 	start := time.Now()
-	console.SendString("a")
-	console.SendString("b")
+	suite.console.SendString("a")
+	suite.console.SendString("b")
 	end := time.Now()
 	duration := end.Sub(start)
-	require.True(t, duration >= 100*time.Millisecond)
-	require.True(t, duration < 200*time.Millisecond)
+	suite.Require().True(duration >= 100*time.Millisecond)
+	suite.Require().True(duration < 200*time.Millisecond)
 }

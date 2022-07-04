@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	tuitest "github.com/aschey/tui-tester"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -34,6 +35,8 @@ func (m model) View() string {
 }
 
 func TestApp(t *testing.T) {
+	_, _ = tuitest.NewTester(".")
+
 	if err := tea.NewProgram(model{input: ""}).Start(); err != nil {
 		fmt.Printf("Could not start program :(\n%v\n", err)
 		os.Exit(1)
