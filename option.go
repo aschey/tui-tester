@@ -1,6 +1,9 @@
 package tuitest
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type Option func(t *Tester) error
 
@@ -27,6 +30,9 @@ func WithTerminationTimeout(terminationTimeout time.Duration) Option {
 
 func WithErrorHandler(onError func(err error) error) Option {
 	return func(t *Tester) error {
+		if onError == nil {
+			return fmt.Errorf("onError can't be nil")
+		}
 		t.onError = onError
 		return nil
 	}

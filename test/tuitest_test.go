@@ -7,26 +7,24 @@ import (
 )
 
 func TestTester(t *testing.T) {
-	tester, err := tuitest.NewTester("./testapp")
+	tester, err := tuitest.NewTester("./testapp", tuitest.WithErrorHandler(func(err error) error {
+		t.Error(err)
+		return err
+	}))
+
 	if err != nil {
 		t.Error(err)
 	}
-	console, err := tester.CreateConsole([]string{})
+	console, _ := tester.CreateConsole([]string{})
 	console.TrimOutput = true
-	if err != nil {
-		t.Error(err)
-	}
 
 	// Wait for initialization
-	_, err = console.WaitFor(func(state tuitest.TermState) bool {
+	_, _ = console.WaitFor(func(state tuitest.TermState) bool {
 		return state.Output() == "You typed:"
 	})
-	if err != nil {
-		t.Error(err)
-	}
 
 	console.SendString("input")
-	_, err = console.WaitFor(func(state tuitest.TermState) bool {
+	_, _ = console.WaitFor(func(state tuitest.TermState) bool {
 		return state.Output() == "You typed: input"
 	})
 	if err != nil {
@@ -34,13 +32,7 @@ func TestTester(t *testing.T) {
 	}
 
 	console.SendString(tuitest.KeyCtrlC)
-	err = console.WaitForTermination()
-	if err != nil {
-		t.Error(err)
-	}
+	_ = console.WaitForTermination()
 
-	err = tester.TearDown()
-	if err != nil {
-		t.Error(err)
-	}
+	_ = tester.TearDown()
 }

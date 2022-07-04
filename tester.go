@@ -134,5 +134,8 @@ func (t *Tester) TearDown() error {
 	}
 
 	err := os.RemoveAll(binDir)
-	return t.onError(err)
+	if err != nil {
+		return t.onError(err)
+	}
+	return nil
 }

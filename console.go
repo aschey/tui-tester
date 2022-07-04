@@ -42,7 +42,7 @@ func (c *Console) waitFor(condition func(state TermState) bool, duration *time.D
 	outCh := make(chan TermState, 1)
 	_, err := c.consoleProcess.ExpectCustom(Matcher(condition, c.TrimOutput, outCh, duration))
 	if err != nil {
-		return TermState{}, c.handleError(err)
+		return TermState{}, c.onError(err)
 	}
 	return <-outCh, nil
 }
@@ -58,11 +58,4 @@ func (c *Console) WaitForTermination() error {
 		return c.onError(err)
 	}
 	return nil
-}
-
-func (c *Console) handleError(err error) error {
-	if c.onError != nil && err != nil {
-		return c.onError(err)
-	}
-	return err
 }
