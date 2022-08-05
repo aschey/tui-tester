@@ -35,7 +35,8 @@ func (m model) View() string {
 }
 
 func TestApp(t *testing.T) {
-	_, _ = tuitest.NewTester(".")
+	suite := tuitest.NewSuite()
+	_, _ = suite.NewTester(".")
 
 	if err := tea.NewProgram(model{input: ""}).Start(); err != nil {
 		fmt.Printf("Could not start program :(\n%v\n", err)

@@ -1,11 +1,8 @@
 package tuitest
 
 import (
-	"flag"
-	"fmt"
 	"io/fs"
 	"os"
-	"os/exec"
 	"path"
 	"strings"
 	"time"
@@ -15,19 +12,8 @@ import (
 	"golang.org/x/tools/cover"
 )
 
-var collectCoverage *bool
-var coverpkg *string
-var coverageFile *string
-
-func init() {
-	collectCoverage = flag.Bool("tuicover", false, "")
-	coverpkg = flag.String("tuicoverpkg", ".", "")
-	coverageFile = flag.String("tuicoverfile", "coverage.out", "")
-}
-
 type Tester struct {
 	exePath            string
-	coverageFile       string
 	collectCoverage    bool
 	defaultWaitTimeout time.Duration
 	minInputInterval   time.Duration
@@ -69,63 +55,25 @@ func (t *Tester) CreateConsole(args ...string) (*Console, error) {
 	return console, nil
 }
 
-func NewTester(binDir string, opts ...Option) (*Tester, error) {
-	tmpdir, err := os.MkdirTemp("", "")
-	if err != nil {
-		return nil, err
-	}
-	exe_name := "test_bin"
-	exePath := path.Join(tmpdir, exe_name)
-
-	var buildTestCmd *exec.Cmd
-	if *collectCoverage {
-		buildTestCmd = exec.Command("go", "test", binDir, "-covermode=atomic", "-c", "-o", exePath, "-coverpkg", *coverpkg)
-	} else {
-		buildTestCmd = exec.Command("go", "test", binDir, "-c", "-o", exePath)
-	}
-
-	output, err := buildTestCmd.CombinedOutput()
-	if err != nil {
-		return nil, fmt.Errorf(string(output))
-	}
-
-	tester := &Tester{
-		exePath:            exePath,
-		collectCoverage:    *collectCoverage,
-		coverageFile:       *coverageFile,
-		defaultWaitTimeout: time.Second,
-		minInputInterval:   time.Millisecond,
-		terminationTimeout: time.Second,
-		onError:            func(err error) error { return err },
-	}
-
-	for _, opt := range opts {
-		if err := opt(tester); err != nil {
-			return nil, err
-		}
-	}
-	return tester, nil
-}
-
-func (t *Tester) TearDown() error {
+func (t *Tester) getCoverageFiles() ([]*cover.Profile, error) {
 	binDir := path.Dir(t.exePath)
 	if t.collectCoverage {
 		files, err := os.ReadDir(binDir)
 		if err != nil {
-			return t.onError(err)
-		}
+			return nil, t.onError(err)
 
+		}
 		merged, err := t.profiles(files, binDir)
 		if err != nil {
-			return t.onError(err)
+			return nil, t.onError(err)
 		}
-
-		covFile, err := os.Create(t.coverageFile)
-		if err != nil {
-			return t.onError(err)
-		}
-		dumpProfiles(merged, covFile)
+		return merged, nil
 	}
+	return nil, nil
+}
+
+func (t *Tester) tearDown() error {
+	binDir := path.Dir(t.exePath)
 
 	err := os.RemoveAll(binDir)
 	if err != nil {

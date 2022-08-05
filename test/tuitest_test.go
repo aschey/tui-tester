@@ -17,7 +17,7 @@ func init() {
 
 type TestSuite struct {
 	suite.Suite
-	tester  *tuitest.Tester
+	suite   *tuitest.Suite
 	console *tuitest.Console
 }
 
@@ -34,8 +34,9 @@ func (suite *TestSuite) SetupSuite() {
 }
 
 func (suite *TestSuite) setup(opts ...tuitest.Option) {
-	tester, err := tuitest.NewTester("./testapp", opts...)
-	suite.tester = tester
+	testSuite := tuitest.NewSuite()
+	tester, err := testSuite.NewTester("./testapp", opts...)
+	suite.suite = testSuite
 
 	suite.Require().NoError(err)
 	console, err := tester.CreateConsole()
@@ -52,7 +53,7 @@ func (suite *TestSuite) setup(opts ...tuitest.Option) {
 func (suite *TestSuite) TearDownTest() {
 	suite.console.SendString(tuitest.KeyCtrlC)
 	suite.Require().NoError(suite.console.WaitForTermination())
-	suite.Require().NoError(suite.tester.TearDown())
+	suite.Require().NoError(suite.suite.TearDown())
 	fileBytes, err := os.ReadFile("coverage.out")
 	suite.Require().NoError(err)
 	fileStr := string(fileBytes)
