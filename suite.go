@@ -79,11 +79,18 @@ func (s *Suite) TearDown() error {
 			}
 			coverageFiles = append(coverageFiles, files...)
 		}
-		tester.tearDown()
+		err := tester.tearDown()
+		if err != nil {
+			return err
+		}
 	}
 	covFile, err := os.Create(s.coverageFile)
 	if err != nil {
 		return err
 	}
-	return dumpProfiles(coverageFiles, covFile)
+	err = dumpProfiles(coverageFiles, covFile)
+	if err != nil {
+		return err
+	}
+	return covFile.Close()
 }

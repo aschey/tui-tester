@@ -23,7 +23,10 @@ type TestSuite struct {
 
 func cleanupCoverageFile() {
 	if _, err := os.Stat("coverage.out"); err == nil {
-		os.Remove("coverage.out")
+		err := os.Remove("coverage.out")
+		if err != nil {
+			panic("Error removing coverage file " + err.Error())
+		}
 	} else if !errors.Is(err, os.ErrNotExist) {
 		panic("Error reading coverage file " + err.Error())
 	}
