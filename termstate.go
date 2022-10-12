@@ -1,6 +1,7 @@
 package tuitest
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/ActiveState/vt10x"
@@ -34,12 +35,22 @@ func (t TermState) NumLines() int {
 	return len(t.OutputLines())
 }
 
-func (t TermState) FgColor(row int, col int) uint16 {
-	_, fg, _ := t.state.Cell(col, row)
-	return uint16(fg)
+type Color uint16
+
+func (c Color) Int() uint16 {
+	return uint16(c)
 }
 
-func (t TermState) BgColor(row int, col int) uint16 {
+func (c Color) String() string {
+	return fmt.Sprint(c.Int())
+}
+
+func (t TermState) ForegroundColor(row int, col int) Color {
+	_, fg, _ := t.state.Cell(col, row)
+	return Color(fg)
+}
+
+func (t TermState) BackgroundColor(row int, col int) Color {
 	_, _, bg := t.state.Cell(col, row)
-	return uint16(bg)
+	return Color(bg)
 }
